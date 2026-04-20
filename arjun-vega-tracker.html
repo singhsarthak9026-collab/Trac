@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Arjun Vega — Growth OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080A0E;
+    --surface: #0F1218;
+    --surface2: #161B24;
+    --border: #1E2530;
+    --gold: #C9A84C;
+    --gold2: #F0CC6E;
+    --red: #E05252;
+    --green: #4ECFA0;
+    --blue: #4E8FEF;
+    --text: #EEF2F7;
+    --muted: #5A6478;
+    --muted2: #3A4252;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(8,10,14,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 15px;
+    letter-spacing: 0.12em; color: var(--gold);
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--muted); font-weight: 400; }
+  .date-pill {
+    font-size: 10px; color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 20px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── NAV ── */
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(8,10,14,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 10px 0 20px;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    cursor: pointer; padding: 6px 0;
+    transition: all 0.2s;
+  }
+  .nav-icon { font-size: 18px; }
+  .nav-label { font-size: 9px; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+  .nav-item.active .nav-label { color: var(--gold); }
+  .nav-item.active .nav-icon { transform: translateY(-2px); }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 80px 0 90px; min-height: 100vh; }
+  .page.active { display: block; }
+
+  .section { padding: 0 16px 20px; }
+
+  /* ── HERO CARD ── */
+  .hero-card {
+    margin: 0 16px 20px;
+    background: linear-gradient(135deg, #0F1218 0%, #141A24 50%, #0A0E15 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative; overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero-card::after {
+    content: 'ARJUN VEGA';
+    position: absolute; bottom: 16px; right: 20px;
+    font-family: 'Syne', sans-serif;
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 0.3em; color: rgba(201,168,76,0.15);
+  }
+  .hero-greeting {
+    font-size: 10px; color: var(--muted);
+    letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px; line-height: 1.1;
+    color: var(--text); margin-bottom: 16px;
+  }
+  .hero-title em { color: var(--gold); font-style: italic; }
+  .overall-progress {
+    display: flex; align-items: flex-end; gap: 12px; margin-bottom: 16px;
+  }
+  .overall-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 52px; font-weight: 800;
+    color: var(--gold); line-height: 1;
+  }
+  .overall-meta { padding-bottom: 6px; }
+  .overall-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
+  .overall-streak { font-size: 12px; color: var(--green); margin-top: 2px; }
+
+  /* ── PROGRESS BAR ── */
+  .bar-track {
+    height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold2) 100%);
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+  .bar-fill.green { background: linear-gradient(90deg, #2EAF82 0%, var(--green) 100%); }
+  .bar-fill.blue { background: linear-gradient(90deg, #2E6FD4 0%, var(--blue) 100%); }
+  .bar-fill.red { background: linear-gradient(90deg, #C03A3A 0%, var(--red) 100%); }
+
+  /* ── SECTION HEADER ── */
+  .sec-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .sec-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.2em; color: var(--muted);
+    text-transform: uppercase;
+  }
+  .sec-badge {
+    font-size: 10px; color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 2px 8px; border-radius: 10px;
+  }
+
+  /* ── TASK CARDS ── */
+  .task-list { display: flex; flex-direction: column; gap: 10px; }
+  .task-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .task-card::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--muted2); border-radius: 0 2px 2px 0;
+    transition: background 0.2s;
+  }
+  .task-card.done::before { background: var(--green); }
+  .task-card.done { opacity: 0.7; }
+  .task-card:active { transform: scale(0.98); }
+
+  .task-check {
+    width: 24px; height: 24px; border-radius: 8px;
+    border: 2px solid var(--muted2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.2s; font-size: 12px;
+  }
+  .task-card.done .task-check {
+    background: var(--green); border-color: var(--green); color: #000;
+  }
+  .task-info { flex: 1; }
+  .task-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 600; margin-bottom: 2px;
+  }
+  .task-card.done .task-name { text-decoration: line-through; color: var(--muted); }
+  .task-time { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
+  .task-xp {
+    font-size: 11px; color: var(--gold);
+    font-weight: 500; flex-shrink: 0;
+  }
+
+  /* ── STATS GRID ── */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px;
+  }
+  .stat-label { font-size: 9px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800; line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-value.gold { color: var(--gold); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.blue { color: var(--blue); }
+  .stat-value.red { color: var(--red); }
+  .stat-sub { font-size: 10px; color: var(--muted); }
+
+  /* ── WEEK GRAPH ── */
+  .week-graph {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px;
+  }
+  .week-bars {
+    display: flex; align-items: flex-end;
+    gap: 8px; height: 80px; margin-bottom: 8px;
+  }
+  .week-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .week-bar-outer { width: 100%; flex: 1; background: var(--border); border-radius: 4px; display: flex; align-items: flex-end; overflow: hidden; }
+  .week-bar-inner {
+    width: 100%; border-radius: 4px;
+    background: linear-gradient(180deg, var(--gold2) 0%, var(--gold) 100%);
+    transition: height 0.8s cubic-bezier(0.4,0,0.2,1);
+    min-height: 2px;
+  }
+  .week-bar-inner.today { background: linear-gradient(180deg, #7EFFD4 0%, var(--green) 100%); }
+  .week-day { font-size: 9px; color: var(--muted); letter-spacing: 0.05em; }
+  .week-day.today { color: var(--green); }
+
+  /* ── PILLAR CARDS ── */
+  .pillar-list { display: flex; flex-direction: column; gap: 10px; }
+  .pillar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px;
+  }
+  .pillar-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .pillar-name-wrap { display: flex; align-items: center; gap: 10px; }
+  .pillar-icon { font-size: 20px; }
+  .pillar-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+  }
+  .pillar-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 800;
+  }
+
+  /* ── MONTH RING ── */
+  .month-overview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .ring-wrap { position: relative; width: 140px; height: 140px; margin: 16px 0; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .ring-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px; font-weight: 800; color: var(--gold);
+    line-height: 1;
+  }
+  .ring-label { font-size: 9px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .month-pillars { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .month-pillar-row { display: flex; align-items: center; gap: 10px; }
+  .month-pillar-label { font-size: 11px; color: var(--muted); width: 90px; flex-shrink: 0; }
+  .month-pillar-bar { flex: 1; }
+  .month-pillar-pct { font-size: 11px; color: var(--text); width: 32px; text-align: right; flex-shrink: 0; }
+
+  /* ── PROFILE ── */
+  .profile-hero {
+    margin: 0 16px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px;
+    text-align: center;
+  }
+  .profile-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold) 0%, #8B6A1F 100%);
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800;
+    color: #000;
+  }
+  .profile-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800; color: var(--gold);
+    margin-bottom: 2px;
+  }
+  .profile-title { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 16px; }
+  .xp-bar-wrap { margin-top: 8px; }
+  .xp-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .xp-label span { font-size: 10px; color: var(--muted); }
+  .xp-label strong { font-size: 10px; color: var(--gold); }
+
+  .goal-cards { margin: 0 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .goal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px;
+  }
+  .goal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .goal-icon { font-size: 18px; }
+  .goal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700; flex: 1;
+  }
+  .goal-years { font-size: 10px; color: var(--muted); }
+  .goal-desc { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+
+  /* ── QUOTE ── */
+  .quote-card {
+    margin: 0 16px 20px;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 14px; padding: 18px;
+    position: relative; overflow: hidden;
+  }
+  .quote-card::before {
+    content: '"';
+    position: absolute; top: -10px; left: 12px;
+    font-family: 'Instrument Serif', serif;
+    font-size: 80px; color: rgba(201,168,76,0.1); line-height: 1;
+  }
+  .quote-text {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic; font-size: 15px; line-height: 1.6;
+    color: var(--text); position: relative; z-index: 1;
+    margin-bottom: 8px;
+  }
+  .quote-author { font-size: 10px; color: var(--gold); letter-spacing: 0.1em; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--green); color: #000;
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+    padding: 10px 20px; border-radius: 20px;
+    opacity: 0; transition: all 0.3s; z-index: 200;
+    white-space: nowrap; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.4s ease both; }
+  .fade-up-2 { animation: fadeUp 0.4s 0.08s ease both; }
+  .fade-up-3 { animation: fadeUp 0.4s 0.16s ease both; }
+  .fade-up-4 { animation: fadeUp 0.4s 0.24s ease both; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">Arjun <span>Vega</span></div>
+  <div class="date-pill" id="topDate">—</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════ PAGE: TODAY ════════════════════════════ -->
+<div class="page active" id="page-today">
+
+  <div class="hero-card fade-up">
+    <div class="hero-greeting">Day of Execution</div>
+    <div class="hero-title">Today is where the<br><em>billionaire is built.</em></div>
+    <div class="overall-progress">
+      <div class="overall-pct" id="todayPct">0%</div>
+      <div class="overall-meta">
+        <div class="overall-label">TODAY COMPLETE</div>
+        <div class="overall-streak" id="streakLabel">🔥 0 day streak</div>
+      </div>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="todayBar" style="width:0%"></div></div>
+  </div>
+
+  <div class="section fade-up-2">
+    <div class="sec-header">
+      <div class="sec-title">Non-Negotiables</div>
+      <div class="sec-badge" id="doneCount">0/4</div>
+    </div>
+    <div class="task-list" id="taskList"></div>
+  </div>
+
+  <div class="section fade-up-3">
+    <div class="sec-header"><div class="sec-title">Time Blocks</div></div>
+    <div class="task-list" id="blockList"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════ PAGE: WEEK ════════════════════════════ -->
+<div class="page" id="page-week">
+
+  <div class="section fade-up">
+    <div class="sec-header">
+      <div class="sec-title">This Week</div>
+      <div class="sec-badge" id="weekBadge">—</div>
+    </div>
+    <div class="week-graph">
+      <div class="week-bars" id="weekBars"></div>
+      <div style="display:flex;gap:8px;" id="weekDays"></div>
+    </div>
+  </div>
+
+  <div class="section fade-up-2">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Best Day</div>
+        <div class="stat-value gold" id="bestDay">—</div>
+        <div class="stat-sub" id="bestDayPct">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Score</div>
+        <div class="stat-value blue" id="weekAvg">0%</div>
+        <div class="stat-sub">this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tasks Done</div>
+        <div class="stat-value green" id="weekTasks">0</div>
+        <div class="stat-sub">this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Streak</div>
+        <div class="stat-value red" id="weekStreak">0</div>
+        <div class="stat-sub">days 🔥</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section fade-up-3">
+    <div class="sec-header"><div class="sec-title">Pillar Breakdown</div></div>
+    <div class="pillar-list" id="pillarList"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════ PAGE: MONTH ════════════════════════════ -->
+<div class="page" id="page-month">
+
+  <div class="section fade-up">
+    <div class="sec-header">
+      <div class="sec-title">Monthly Overview</div>
+      <div class="sec-badge" id="monthBadge">—</div>
+    </div>
+    <div class="month-overview">
+      <div style="font-size:11px;color:var(--muted);letter-spacing:0.1em;">OVERALL PROGRESS</div>
+      <div class="ring-wrap">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="58" fill="none" stroke="#1E2530" stroke-width="10"/>
+          <circle cx="70" cy="70" r="58" fill="none" stroke="url(#ringGrad)" stroke-width="10"
+            stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4" id="ringCircle"
+            style="transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)"/>
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#C9A84C"/>
+              <stop offset="100%" stop-color="#F0CC6E"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct" id="monthPct">0%</div>
+          <div class="ring-label">this month</div>
+        </div>
+      </div>
+      <div class="month-pillars" id="monthPillars"></div>
+    </div>
+  </div>
+
+  <div class="section fade-up-2">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Days Tracked</div>
+        <div class="stat-value gold" id="daysTracked">0</div>
+        <div class="stat-sub">of <span id="daysInMonth">30</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Perfect Days</div>
+        <div class="stat-value green" id="perfectDays">0</div>
+        <div class="stat-sub">100% complete</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total XP</div>
+        <div class="stat-value blue" id="totalXP">0</div>
+        <div class="stat-sub">experience pts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Best Streak</div>
+        <div class="stat-value red" id="bestStreak">0</div>
+        <div class="stat-sub">days in a row 🔥</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════ PAGE: PROFILE ════════════════════════════ -->
+<div class="page" id="page-profile">
+
+  <div class="profile-hero fade-up">
+    <div class="profile-avatar">AV</div>
+    <div class="profile-name">ARJUN VEGA</div>
+    <div class="profile-title">THE STAR THAT NEVER MOVES · BILLIONAIRE IN TRAINING</div>
+    <div class="xp-bar-wrap">
+      <div class="xp-label"><span>Level <span id="userLevel">1</span></span><strong id="userXP">0 XP</strong></div>
+      <div class="bar-track"><div class="bar-fill" id="xpBar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="quote-card fade-up-2">
+    <div class="quote-text" id="dailyQuote">The target is a billionaire. The path is built one completed day at a time.</div>
+    <div class="quote-author">— ARJUN VEGA GROWTH OS</div>
+  </div>
+
+  <div class="goal-cards fade-up-3">
+    <div class="sec-header" style="padding:0 0 8px"><div class="sec-title">Your 12-Year Vision</div></div>
+
+    <div class="goal-card">
+      <div class="goal-header">
+        <div class="goal-icon">💰</div>
+        <div class="goal-title">Become a Billionaire</div>
+        <div class="goal-years">12 yrs</div>
+      </div>
+      <div class="goal-desc">AI-powered fintech. Solve a massive financial problem for millions of Indians. Build systems, not a job.</div>
+      <div class="bar-track"><div class="bar-fill" style="width:1%"></div></div>
+    </div>
+
+    <div class="goal-card">
+      <div class="goal-header">
+        <div class="goal-icon">🧠</div>
+        <div class="goal-title">Become Highly Intellectual</div>
+        <div class="goal-years">Ongoing</div>
+      </div>
+      <div class="goal-desc">20 pages daily. Finance mastery. Mental models. The sharpest mind in any room.</div>
+      <div class="bar-track"><div class="bar-fill green" id="intellectGoal" style="width:0%"></div></div>
+    </div>
+
+    <div class="goal-card">
+      <div class="goal-header">
+        <div class="goal-icon">⚡</div>
+        <div class="goal-title">Six Pack + Peak Physique</div>
+        <div class="goal-years">1-2 yrs</div>
+      </div>
+      <div class="goal-desc">Proof of discipline. If you can keep a promise to your body, you can keep one to investors.</div>
+      <div class="bar-track"><div class="bar-fill blue" id="physGoal" style="width:0%"></div></div>
+    </div>
+
+    <div class="goal-card">
+      <div class="goal-header">
+        <div class="goal-icon">🌟</div>
+        <div class="goal-title">Master AI × Finance</div>
+        <div class="goal-years">2-5 yrs</div>
+      </div>
+      <div class="goal-desc">Fintech product thinking. Data literacy. Build at the intersection where billions are made.</div>
+      <div class="bar-track"><div class="bar-fill" id="skillGoal" style="width:0%"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════ NAV ════════════════════════════ -->
+<nav class="nav">
+  <div class="nav-item active" onclick="switchPage('today',this)">
+    <div class="nav-icon">⚡</div>
+    <div class="nav-label">Today</div>
+  </div>
+  <div class="nav-item" onclick="switchPage('week',this)">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">Week</div>
+  </div>
+  <div class="nav-item" onclick="switchPage('month',this)">
+    <div class="nav-icon">🌙</div>
+    <div class="nav-label">Month</div>
+  </div>
+  <div class="nav-item" onclick="switchPage('profile',this)">
+    <div class="nav-icon">🌟</div>
+    <div class="nav-label">Vision</div>
+  </div>
+</nav>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const TASKS = [
+  { id:'workout',  name:'Physical Training',   time:'Morning', xp:25, icon:'💪', pillar:'body',     nonNeg:true },
+  { id:'finance',  name:'Finance Learning',     time:'11:30 AM', xp:25, icon:'📈', pillar:'finance',  nonNeg:true },
+  { id:'maths',    name:'Class 12 Maths',       time:'8:30 AM',  xp:25, icon:'📐', pillar:'intellect',nonNeg:true },
+  { id:'journal',  name:'Daily Journaling',     time:'Night',    xp:25, icon:'📓', pillar:'mindset',  nonNeg:true },
+  { id:'reading',  name:'Book Reading (20 pg)', time:'10:00 PM', xp:15, icon:'📚', pillar:'intellect',nonNeg:false },
+  { id:'markets',  name:'Market Study (15 min)',time:'Afternoon',xp:15, icon:'💹', pillar:'finance',  nonNeg:false },
+  { id:'podcast',  name:'Podcast Learning',     time:'3:30 PM',  xp:10, icon:'🎧', pillar:'intellect',nonNeg:false },
+  { id:'coldwater',name:'No Social Media',      time:'All day',  xp:20, icon:'🚫', pillar:'mindset',  nonNeg:false },
+];
+
+const PILLARS = [
+  { id:'body',      name:'Body & Discipline', icon:'💪', color:'blue'   },
+  { id:'finance',   name:'Finance',           icon:'📈', color:'gold'   },
+  { id:'intellect', name:'Intellect',         icon:'🧠', color:'green'  },
+  { id:'mindset',   name:'Mindset',           icon:'🔱', color:'red'    },
+];
+
+const QUOTES = [
+  "The billionaire is built in the mornings nobody sees.",
+  "Arjun never missed his target. Neither will you.",
+  "Vega — the star that never moves. Be the fixed point.",
+  "Discipline is doing it when the feeling is gone.",
+  "Your future self is watching. Don't disappoint him.",
+  "Every completed task is a brick in your empire.",
+  "Laziness is a borrowed future you can't repay.",
+  "The market rewards consistency above all else.",
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const today = new Date();
+const todayKey = today.toISOString().slice(0,10);
+const monthKey = todayKey.slice(0,7);
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('avgState')) || {}; } catch { return {}; }
+}
+function saveState(s) { localStorage.setItem('avgState', JSON.stringify(s)); }
+
+let state = loadState();
+if (!state.days) state.days = {};
+if (!state.days[todayKey]) state.days[todayKey] = { tasks:{} };
+
+function getTodayDone() { return state.days[todayKey]?.tasks || {}; }
+function setTaskDone(id, val) {
+  state.days[todayKey].tasks[id] = val;
+  saveState(state);
+}
+
+// ══════════════════════════════════════════════
+// CALCULATIONS
+// ══════════════════════════════════════════════
+function dayScore(dateKey) {
+  const d = state.days[dateKey];
+  if (!d) return 0;
+  const done = Object.values(d.tasks||{}).filter(Boolean).length;
+  return Math.round((done / TASKS.length) * 100);
+}
+
+function totalXPEarned() {
+  let xp = 0;
+  for (const [dk, dv] of Object.entries(state.days||{})) {
+    for (const [tid, done] of Object.entries(dv.tasks||{})) {
+      if (done) { const t = TASKS.find(t=>t.id===tid); if(t) xp += t.xp; }
+    }
+  }
+  return xp;
+}
+
+function pillarScore(pillarId, dateKey) {
+  const d = state.days[dateKey];
+  if (!d) return 0;
+  const pillarTasks = TASKS.filter(t=>t.pillar===pillarId);
+  const done = pillarTasks.filter(t=>d.tasks[t.id]).length;
+  return pillarTasks.length ? Math.round((done/pillarTasks.length)*100) : 0;
+}
+
+function pillarMonthScore(pillarId) {
+  const days = Object.keys(state.days).filter(k=>k.startsWith(monthKey));
+  if (!days.length) return 0;
+  const avg = days.reduce((s,dk)=>s+pillarScore(pillarId,dk),0)/days.length;
+  return Math.round(avg);
+}
+
+function getStreak() {
+  let streak = 0;
+  const d = new Date();
+  while (true) {
+    const key = d.toISOString().slice(0,10);
+    const score = dayScore(key);
+    if (score >= 50) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+    if (streak > 365) break;
+  }
+  return streak;
+}
+
+function weekData() {
+  const days = [];
+  for (let i=6; i>=0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    days.push({ key, label: dayNames[d.getDay()], score: dayScore(key), isToday: i===0 });
+  }
+  return days;
+}
+
+// ══════════════════════════════════════════════
+// RENDER TODAY
+// ══════════════════════════════════════════════
+function renderToday() {
+  const done = getTodayDone();
+  const doneCount = Object.values(done).filter(Boolean).length;
+  const pct = Math.round((doneCount/TASKS.length)*100);
+  const nonNegDone = TASKS.filter(t=>t.nonNeg && done[t.id]).length;
+
+  document.getElementById('todayPct').textContent = pct+'%';
+  document.getElementById('todayBar').style.width = pct+'%';
+  document.getElementById('doneCount').textContent = nonNegDone+'/4';
+  document.getElementById('streakLabel').textContent = '🔥 '+getStreak()+' day streak';
+
+  // Non-negotiables
+  const nonNeg = TASKS.filter(t=>t.nonNeg);
+  document.getElementById('taskList').innerHTML = nonNeg.map(t=>`
+    <div class="task-card ${done[t.id]?'done':''}" onclick="toggleTask('${t.id}')">
+      <div class="task-check">${done[t.id]?'✓':''}</div>
+      <div class="task-info">
+        <div class="task-name">${t.icon} ${t.name}</div>
+        <div class="task-time">${t.time}</div>
+      </div>
+      <div class="task-xp">+${t.xp}XP</div>
+    </div>
+  `).join('');
+
+  // Blocks
+  const rest = TASKS.filter(t=>!t.nonNeg);
+  document.getElementById('blockList').innerHTML = rest.map(t=>`
+    <div class="task-card ${done[t.id]?'done':''}" onclick="toggleTask('${t.id}')">
+      <div class="task-check">${done[t.id]?'✓':''}</div>
+      <div class="task-info">
+        <div class="task-name">${t.icon} ${t.name}</div>
+        <div class="task-time">${t.time}</div>
+      </div>
+      <div class="task-xp">+${t.xp}XP</div>
+    </div>
+  `).join('');
+}
+
+function toggleTask(id) {
+  const done = getTodayDone();
+  setTaskDone(id, !done[id]);
+  renderToday();
+  renderWeek();
+  renderMonth();
+  renderProfile();
+  const t = TASKS.find(t=>t.id===id);
+  if (!done[id]) showToast('+'+t.xp+' XP — '+t.name+' ✓');
+}
+
+// ══════════════════════════════════════════════
+// RENDER WEEK
+// ══════════════════════════════════════════════
+function renderWeek() {
+  const data = weekData();
+  const maxScore = Math.max(...data.map(d=>d.score), 1);
+  const avg = Math.round(data.reduce((s,d)=>s+d.score,0)/7);
+  const best = data.reduce((b,d)=>d.score>b.score?d:b, data[0]);
+  const totalDone = data.reduce((s,dk)=>{
+    const d = state.days[dk.key];
+    return s + (d ? Object.values(d.tasks||{}).filter(Boolean).length : 0);
+  }, 0);
+
+  document.getElementById('weekBadge').textContent = avg+'% avg';
+  document.getElementById('weekAvg').textContent = avg+'%';
+  document.getElementById('weekTasks').textContent = totalDone;
+  document.getElementById('weekStreak').textContent = getStreak();
+  document.getElementById('bestDay').textContent = best.label;
+  document.getElementById('bestDayPct').textContent = best.score+'% complete';
+
+  document.getElementById('weekBars').innerHTML = data.map(d=>`
+    <div class="week-bar-wrap">
+      <div class="week-bar-outer">
+        <div class="week-bar-inner ${d.isToday?'today':''}" style="height:${d.score?Math.max(d.score/100*80,4):4}px;width:100%"></div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('weekDays').innerHTML = data.map(d=>`
+    <div style="flex:1;text-align:center">
+      <div class="week-day ${d.isToday?'today':''}">${d.label}</div>
+      <div style="font-size:9px;color:${d.score>=80?'var(--green)':d.score>=50?'var(--gold)':'var(--muted)'};margin-top:2px">${d.score?d.score+'%':'—'}</div>
+    </div>
+  `).join('');
+
+  // Pillars
+  document.getElementById('pillarList').innerHTML = PILLARS.map(p=>{
+    const scores = data.map(d=>pillarScore(p.id,d.key));
+    const avg = Math.round(scores.reduce((s,v)=>s+v,0)/7);
+    return `
+      <div class="pillar-card">
+        <div class="pillar-top">
+          <div class="pillar-name-wrap">
+            <div class="pillar-icon">${p.icon}</div>
+            <div class="pillar-name">${p.name}</div>
+          </div>
+          <div class="pillar-pct" style="color:var(--${p.color==='gold'?'gold':p.color==='blue'?'blue':p.color==='green'?'green':'red'})">${avg}%</div>
+        </div>
+        <div class="bar-track"><div class="bar-fill ${p.color==='gold'?'':p.color}" style="width:${avg}%"></div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// RENDER MONTH
+// ══════════════════════════════════════════════
+function renderMonth() {
+  const monthDays = Object.keys(state.days).filter(k=>k.startsWith(monthKey));
+  const monthScores = monthDays.map(dk=>dayScore(dk));
+  const avgMonth = monthScores.length ? Math.round(monthScores.reduce((s,v)=>s+v,0)/monthScores.length) : 0;
+  const perfectDays = monthScores.filter(s=>s===100).length;
+  const xp = totalXPEarned();
+
+  document.getElementById('monthBadge').textContent = new Date().toLocaleString('default',{month:'long'});
+  document.getElementById('monthPct').textContent = avgMonth+'%';
+  document.getElementById('daysTracked').textContent = monthDays.length;
+  document.getElementById('daysInMonth').textContent = new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+  document.getElementById('perfectDays').textContent = perfectDays;
+  document.getElementById('totalXP').textContent = xp;
+  document.getElementById('bestStreak').textContent = getStreak();
+
+  // Ring
+  const circumference = 364.4;
+  const offset = circumference - (avgMonth/100)*circumference;
+  document.getElementById('ringCircle').style.strokeDashoffset = offset;
+
+  // Month pillars
+  document.getElementById('monthPillars').innerHTML = PILLARS.map(p=>{
+    const score = pillarMonthScore(p.id);
+    return `
+      <div class="month-pillar-row">
+        <div class="month-pillar-label">${p.icon} ${p.name.split(' ')[0]}</div>
+        <div class="month-pillar-bar"><div class="bar-track"><div class="bar-fill ${p.color==='gold'?'':p.color}" style="width:${score}%"></div></div></div>
+        <div class="month-pillar-pct">${score}%</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// RENDER PROFILE
+// ══════════════════════════════════════════════
+function renderProfile() {
+  const xp = totalXPEarned();
+  const level = Math.floor(xp/200)+1;
+  const xpInLevel = xp % 200;
+  const pct = Math.round((xpInLevel/200)*100);
+
+  document.getElementById('userLevel').textContent = level;
+  document.getElementById('userXP').textContent = xp+' XP';
+  document.getElementById('xpBar').style.width = pct+'%';
+
+  // Goal bars reflect month progress
+  const intellectScore = pillarMonthScore('intellect');
+  const bodyScore = pillarMonthScore('body');
+  const financeScore = pillarMonthScore('finance');
+  document.getElementById('intellectGoal').style.width = intellectScore+'%';
+  document.getElementById('physGoal').style.width = bodyScore+'%';
+  document.getElementById('skillGoal').style.width = financeScore+'%';
+
+  // Random daily quote
+  const qi = today.getDate() % QUOTES.length;
+  document.getElementById('dailyQuote').textContent = QUOTES[qi];
+}
+
+// ══════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════
+function switchPage(id, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.getElementById('topDate').textContent = today.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+
+renderToday();
+renderWeek();
+renderMonth();
+renderProfile();
+
+// animate bars after paint
+setTimeout(()=>{
+  document.querySelectorAll('.bar-fill').forEach(b=>{
+    const w = b.style.width; b.style.width='0%';
+    setTimeout(()=>b.style.width=w,50);
+  });
+},100);
+</script>
+</body>
+</html>
